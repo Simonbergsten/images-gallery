@@ -1,12 +1,21 @@
 # from fastapi import FastApi 
-from flask import Flask
+from flask import Flask, request
+from flask_cors import CORS
 import requests
+import os
 
-UNSPLASH_URL = ""
-UNSPLASH_KEY = ""
+UNSPLASH_URL = "https://api.unsplash.com/photos/random"
+UNSPLASH_KEY = "cSgWHGTD8LsVMGIvPp93khO4qCcErbEPWPHKgvPtqx0"
+# UNSPLASH_KEY = os.environ.get("REACT_APP_UNSPLASH_KEY")
+DEBUG = os.environ.get("DEBUG", True)
+
+if not UNSPLASH_KEY:
+    raise EnvironmentError("Please create .env.local file and insert UNSPLASH_KEY")
 
 
 app = Flask(__name__)
+CORS(app)
+app.config["DEBUG"] = DEBUG
 
 @app.route("/")
 def hello():
@@ -14,8 +23,20 @@ def hello():
 
 @app.route("/new-image")
 def new_image():
-    word = requests.args.get("query")
-    return {"word":word}
+    word = request.args.get("query")
+
+    headers = {
+        "Accept-Version": "v1",
+        "Authorization": "Client-ID " + UNSPLASH_KEY
+    }
+
+    params = {
+        "query": word
+    }
+
+    response = requests.get(url=UNSPLASH_URL, headers=headers, params=params)
+    data = response.json()
+    return data
 
 
 if __name__=="__main__":
